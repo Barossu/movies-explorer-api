@@ -1,11 +1,11 @@
-## Макет:
+# Макет:
 
-# dark-4
+### dark-4
 
-## Ссылка на сайт:
+# Ссылка на сайт:
 
-# https://api.movie.kalashnikov.nomoredomainsmonster.ru
+### https://api.movie.kalashnikov.nomoredomainsmonster.ru
 
-## Ссылка на репозиторий:
+# Ссылка на репозиторий:
 
-# https://github.com/Barossu/movies-explorer-api
+### https://github.com/Barossu/movies-explorer-api
