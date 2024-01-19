@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const { rateLimit } = require('express-rate-limit');
 const { errors } = require('celebrate');
 const router = require('./routes/index');
@@ -26,8 +28,17 @@ mongoose.connect(DB_CONN);
 app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.json());
-
+app.use(cookieParser());
 app.use(requestLogger);
+
+app.use(cors({
+  credentials: true,
+  origin: [
+    'https://api.movie.kalashnikov.nomoredomainsmonster.ru',
+    'https://movie.kalashnikov.nomoredomainsmonster.ru',
+  ],
+}));
+
 app.use(router);
 
 app.all('*', (req, res, next) => {
