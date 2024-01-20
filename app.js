@@ -5,23 +5,17 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const { rateLimit } = require('express-rate-limit');
 const { errors } = require('celebrate');
+const { limiter } = require('./utils/rateLimit');
 const router = require('./routes/index');
 const errorHandler = require('./middlewares/errorHandler');
+const DB_CONN_DEV = require('./utils/constants');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const NotFoundError = require('./errors/NotFoundError');
-
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Слишком много запросов с этого IP',
-});
 
 dotenv.config();
 
 const app = express();
-const { PORT = 3000, DB_CONN = 'mongodb://127.0.0.1:27017/moviesdb' } = process.env;
+const { PORT = 3000, DB_CONN = DB_CONN_DEV } = process.env;
 
 mongoose.connect(DB_CONN);
 
@@ -40,10 +34,6 @@ app.use(cors({
 }));
 
 app.use(router);
-
-app.all('*', (req, res, next) => {
-  next(new NotFoundError('Путь не найден'));
-});
 
 app.use(errorLogger);
 app.use(errors());

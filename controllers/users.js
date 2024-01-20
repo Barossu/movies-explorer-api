@@ -4,21 +4,21 @@ const User = require('../models/user');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictError = require('../errors/ConflictError');
-const UnauthorizedError = require('../errors/UnauthorizedError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-const { JWT_SECRET = 'e67ddc6d404d0f0ac43d9ff22d0524cb014184909c5ae5c1a261ae905ddb956f' } = process.env;
+const JWT_SECRET = process.env.NODE_ENV !== 'production' ? 'dev-jwt' : process.env.JWT_SECRET;
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        throw NotFoundError('Нет пользователя с таким id');
+        throw new NotFoundError();
       }
       res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные'));
+        next(new ValidationError());
         return;
       }
       next(err);
@@ -41,7 +41,11 @@ module.exports.patchUserInfo = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданы некорректные данные'));
+        next(new ValidationError());
+        return;
+      }
+      if (err.code === 11000) {
+        next(new ConflictError());
         return;
       }
       next(err);
@@ -59,11 +63,11 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданы некорректные данные'));
+        next(new ValidationError());
         return;
       }
       if (err.code === 11000) {
-        next(new ConflictError('Пользователь с такой почтой уже существует'));
+        next(new ConflictError());
         return;
       }
       next(err);
@@ -75,12 +79,12 @@ module.exports.login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new UnauthorizedError('Неправильные почта или пароль');
+        throw new ForbiddenError();
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new UnauthorizedError('Неправильные почта или пароль');
+            throw new ForbiddenError();
           }
           return user;
         });
@@ -90,7 +94,22 @@ module.exports.login = (req, res, next) => {
       res.cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
-      }).send({ jwt: token });
+      }).end();
+    })
+    .catch(next);
+};
+
+module.exports.signout = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError();
+      }
+      res.clearCookie('jwt', {
+        httpOnly: true,
+        sameSite: true,
+      });
+      res.status(200).send({});
     })
     .catch(next);
 };

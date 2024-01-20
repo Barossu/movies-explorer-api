@@ -1,6 +1,8 @@
+const { VALIDATIONERROR_MESSAGE } = require('../utils/constants');
+
 class ValidationError extends Error {
-  constructor(message) {
-    super(message);
+  constructor() {
+    super(VALIDATIONERROR_MESSAGE);
     this.statusCode = 400;
   }
 }
