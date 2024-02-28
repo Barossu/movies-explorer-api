@@ -30,6 +30,7 @@ app.use(cors({
   origin: [
     'https://api.movie.kalashnikov.nomoredomainsmonster.ru',
     'https://movie.kalashnikov.nomoredomainsmonster.ru',
+    'http://localhost:3000'
   ],
 }));
 
