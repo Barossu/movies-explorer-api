@@ -5,7 +5,7 @@ const AccessDeniedError = require('../errors/AccessDeniedError');
 
 module.exports.getMovies = (req, res, next) => {
   const currentUser = req.user._id;
-  Movie.find({ owwner: currentUser })
+  Movie.find({ owner: currentUser })
     .then((movies) => res.send(movies))
     .catch(next);
 };
